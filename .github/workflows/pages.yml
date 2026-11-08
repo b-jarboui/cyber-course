@@ -18,7 +18,7 @@ jobs:
       url: ${{ steps.d.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir site && cat site.zip.* > s.zip && unzip -q s.zip -d site && if [ -f patch.zip ]; then unzip -oq patch.zip -d site; fi && if [ -f index.html ]; then cp -f index.html site/; fi
+      - run: mkdir site && cat site.zip.* > s.zip && unzip -q s.zip -d site && for p in patch*.zip; do [ -f "$p" ] && unzip -oq "$p" -d site; done; if [ -f index.html ]; then cp -f index.html site/; fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
