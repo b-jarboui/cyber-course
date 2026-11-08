@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cybersecurity in the Age of AI</title></head><body>
+<meta charset="utf-8">
 <title>Chapter 1 Live</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>
 :root{--ink:#26305a;--cream:#f2eee6;--card:#fffdf8;--teal:#2f7477}
 *{box-sizing:border-box}
@@ -37,6 +39,32 @@ body.wide #bar{grid-template-columns:1fr auto;align-items:center;height:60px;pad
 body.wide #view{bottom:60px}
 body.wide{--col:calc((100vh - 60px)*.5625)}
 #time{font:600 14px "Segoe UI",Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Give the scene titles and touch controls room on a phone. */
+:root{--bar:calc(154px + env(safe-area-inset-bottom,0px))}
+#view{bottom:var(--bar)}
+#bar{height:var(--bar);grid-template-rows:18px 24px 44px 38px;gap:4px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+#status{font-size:12px;line-height:18px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctl{display:contents}
+#transport,#options{display:flex;gap:6px;align-items:center;justify-content:center;min-width:0}
+#transport button{min-width:44px;min-height:44px}
+#transport #play{min-width:76px}
+#options select:first-child{flex:1;max-width:none}
+#options #ctx{flex:0 0 82px}
+#options #full{min-width:44px}
+#ctl button:disabled,#ctl select:disabled,#seek:disabled{opacity:.55}
+button,select,input{touch-action:manipulation}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+#wait,#err,#done{z-index:9;align-content:center;gap:16px}
+#wait button,#err button,#done button{font:600 16px "Segoe UI",Arial,sans-serif;min-height:44px;padding:8px 16px;border:1px solid #cfc6b4;border-radius:8px;background:var(--card);color:var(--ink)}
+#wait button[hidden]{display:none}
+#done{position:absolute;inset:0;display:none;place-items:center;padding:24px;text-align:center;background:var(--cream);font-size:20px}
+body.wide{--bar:86px;--col:calc((100vh - var(--bar))*.5625)}
+body.wide #view{bottom:var(--bar)}
+body.wide #bar{height:var(--bar);grid-template-columns:minmax(120px,1fr) auto;grid-template-rows:18px 44px;gap:6px 18px;padding:6px 16px 8px}
+body.wide #status{grid-column:1/-1;text-align:left}
+body.wide #seek{grid-column:1;grid-row:2}
+body.wide #ctl{grid-column:2;grid-row:2;display:flex;gap:14px}
+body.wide #options #scene{width:220px;flex:0 1 220px}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap">
 <script src="vendor/gsap.min.js"></script>
@@ -47,16 +75,34 @@ body.wide{--col:calc((100vh - 60px)*.5625)}
 <script>
 // A link opens one exact moment: #1.05v-50 or #1.05v-50-gulf.
 window.__errors=[];
-addEventListener('error',e=>{window.__errors.push(e.message);const n=document.getElementById('err');if(n){n.style.display='grid';n.textContent='Could not start: '+e.message;}});
-addEventListener('unhandledrejection',e=>{window.__errors.push(String(e.reason));const n=document.getElementById('err');if(n){n.style.display='grid';n.textContent='Could not start: '+e.reason;}});
-const m=/^#?(1\.\d\dv)(?:-(\d+(?:\.\d+)?))?(?:-(arab|gulf))?$/.exec(decodeURIComponent(location.hash));
-window.__live={id:m?.[1]||'1.01v',t:+(m?.[2]||0),context:m?.[3]||'arab'};
+window.__order=['1.01v','1.04v','1.05v','1.06v','1.07v','1.08v','1.09v','1.10v','1.11v','1.12v','1.13v','1.14v','1.15v','1.16v'];
+const readStore=(store,key)=>{try{return JSON.parse(store.getItem(key));}catch{return null;}};
+let hash='';try{hash=decodeURIComponent(location.hash);}catch{}
+const m=/^#?(1\.\d\dv)(?:-(\d+(?:\.\d+)?))?(?:-(arab|gulf))?$/.exec(hash);
+const saved=(()=>{try{return readStore(localStorage,'chapter1-place');}catch{return null;}})();
+const valid=s=>s&&window.__order.includes(s.id)&&Number.isFinite(s.t)&&s.t>=0&&['arab','gulf'].includes(s.context);
+window.__live=m&&window.__order.includes(m[1])?{id:m[1],t:Number(m[2]||0),context:m[3]||'arab'}:
+  !location.hash&&valid(saved)?saved:{id:'1.01v',t:0,context:'arab'};
+window.__resumed=!location.hash&&valid(saved);
+window.__fail=message=>{
+  window.__errors.push(String(message));
+  window.__stop?.();
+  const n=document.getElementById('err');
+  if(n){document.getElementById('wait').style.display='none';n.style.display='grid';n.querySelector('span').textContent=/webgl/i.test(String(message))?'This browser could not start the 3D scene. Your place is kept. Try a browser with WebGL enabled.':'The scene could not load. Your place is kept. Check your connection, then retry.';}
+};
+addEventListener('error',e=>window.__fail(e.message));
+addEventListener('unhandledrejection',e=>window.__fail(e.reason));
+// Start fetching narration while the scene and people load; playback still needs Play.
+window.__audio=new Audio(`audio/${window.__live.id}.mp3`);
+window.__audio.preload='auto';
 // 3D models are published as gzip + base64 text; unpack them as they arrive.
 const nativeFetch=window.fetch.bind(window);
 window.fetch=async(input,init)=>{
   const url=typeof input==='string'?input:input.url??String(input);
   if(!/\.glb(\?|$)/.test(url))return nativeFetch(input,init);
-  const text=await(await nativeFetch(url.replace('.glb','.glb.txt'))).text();
+  const response=await nativeFetch(url.replace('.glb','.glb.txt'),init);
+  if(!response.ok)throw new Error('Model download failed: '+response.status);
+  const text=await response.text();
   const bytes=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
   return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')));
 };
@@ -70,33 +116,98 @@ window.fetch=async(input,init)=>{
 <div id="fx"></div>
 <div id="chips"></div>
 <div id="cap" aria-live="polite"></div>
-<div id="err">This scene needs WebGL, which this browser does not provide.</div>
-<div id="wait">Loading the scene…</div>
+<div id="err" role="alert"><span></span><button onclick="location.reload()">Retry scene</button></div>
+<div id="wait" role="status"><span id="loading">Loading the scene…</span><button id="retry" hidden onclick="location.reload()">Retry scene</button></div>
+<div id="done" role="status"><strong>Chapter 1 complete</strong><span>You have reached the end of all 14 scenes.</span><button id="restart">Replay chapter</button></div>
 </div>
 <div id="bar">
-<input id="seek" type="range" min="0" step=".05" value="0" aria-label="Position in the scene">
-<div id="ctl"><button id="back" aria-label="Back five seconds">−5</button><button id="play">Play</button><button id="fwd" aria-label="Forward five seconds">+5</button><span id="time">0:00</span><select id="scene" aria-label="Scene"></select><select id="ctx" aria-label="Cast"><option value="arab">Arab</option><option value="gulf">Gulf</option></select><button id="full" aria-label="Full screen" title="Full screen">⛶</button></div>
+<div id="status" role="status" aria-live="polite">Loading Chapter 1…</div>
+<input id="seek" type="range" min="0" step=".05" value="0" aria-label="Position in the scene" disabled>
+<div id="ctl"><div id="transport"><button id="back" aria-label="Back five seconds" disabled>−5</button><button id="play" disabled>Play</button><button id="fwd" aria-label="Forward five seconds" disabled>+5</button><span id="time">0:00</span></div><div id="options"><select id="scene" aria-label="Scene" disabled></select><select id="ctx" aria-label="Cast" disabled><option value="arab">Arab</option><option value="gulf">Gulf</option></select><button id="full" aria-label="Full screen" title="Full screen" disabled>⛶</button></div></div>
 </div>
 <script type="module">
-const { createStage, createBuilding, createCounter } = await import('./kit.js');
-const { loadCast, flushPeople, context } = await import('./people.js');
-const { createScreens, CSS } = await import('./screens.js');
-const { createFx, CSS: FXCSS } = await import('./fx.js');
 const DATA = (await import('./data.js')).default;
 const { id, t: start } = window.__live, $ = x => document.getElementById(x);
+const context = window.__live.context, order = window.__order, index = order.indexOf(id), next = order[index + 1];
+const lesson = n => n < 4 ? '1.1' : n < 10 ? '1.2' : '1.3';
+const D = { ...DATA[id], ...DATA[id].contexts?.[context] };
+const audio = window.__audio;
+let t = Math.max(0, Math.min(start, D.T)), playing = false, ready = false, dirty = true, dragging = false;
+let attempt = 0, tail = null, lastPaint = 0, lastDrawn = NaN, lastSave = 0, navigating = false;
+const clock = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+const progress = `Chapter 1 · Lesson ${lesson(index)} · Scene ${index + 1} of ${order.length}`;
+const status = text => { $('status').textContent = text; };
+const mark = () => `${id}-${Math.round(t * 100) / 100}-${context}`;
+function save() {
+  if (playing && !dragging && !audio.paused && !audio.seeking && audio.readyState >= 2) t = Math.min(D.T, audio.currentTime);
+  try { localStorage.setItem('chapter1-place', JSON.stringify({id,t,context})); } catch {}
+  // Keep copied URLs useful, without adding a history entry every second.
+  history.replaceState(null, '', '#' + mark());
+}
+function paintControls() {
+  $('time').textContent = `${clock(t)} / ${clock(D.T)}`;
+  if (!dragging) $('seek').value = t;
+  $('seek').setAttribute('aria-valuetext', `${clock(t)} of ${clock(D.T)}`);
+  $('play').textContent = playing ? 'Pause' : t >= D.T ? (next ? 'Next' : 'Replay') : 'Play';
+  $('play').setAttribute('aria-label', playing ? 'Pause' : t >= D.T && next ? 'Play next scene' : 'Play');
+  $('done').style.display = !next && t >= D.T ? 'grid' : 'none';
+}
+function pause() {
+  save();
+  playing = false; attempt++; audio.pause(); tail = null; dirty = true;
+  if (ready) status(progress + ' · Paused');
+  save(); paintControls();
+}
+window.__stop = pause;
+function open(s, x, c, play = playing) {
+  if (navigating) return;
+  navigating = true; save(); audio.pause(); attempt++;
+  const target = `${s}-${Math.round(x * 100) / 100}-${c}`;
+  try { sessionStorage.setItem('chapter1-navigation', JSON.stringify({target,play,at:Date.now()})); } catch {}
+  status(`Loading Lesson ${lesson(order.indexOf(s))} · Scene ${order.indexOf(s) + 1} of 14…`);
+  $('loading').textContent = $('status').textContent;
+  $('wait').style.display = 'grid';
+  // One navigation entry; hashchange handles pasted links and browser Back too.
+  if (location.hash.slice(1) === target) location.reload(); else location.hash = target;
+}
+addEventListener('hashchange', () => { navigating = true; audio.pause(); attempt++; location.reload(); });
+let nav = null;
+try { nav = JSON.parse(sessionStorage.getItem('chapter1-navigation')); sessionStorage.removeItem('chapter1-navigation'); } catch {}
+const continuePlaying = nav?.target === location.hash.slice(1) && Date.now() - nav.at < 120000 && nav.play;
+$('seek').max = D.T;
+$('scene').innerHTML = ['1.1','1.2','1.3'].map(l => `<optgroup label="Lesson ${l}">${order.filter((k,n) => lesson(n) === l).map(k => `<option value="${k}">${k.slice(0,4)} ${DATA[k].title}</option>`).join('')}</optgroup>`).join('');
+$('scene').value = id; $('ctx').value = context;
+$('scene').disabled = $('ctx').disabled = false;
+$('scene').onchange = e => open(e.target.value, 0, context);
+$('ctx').onchange = e => { save(); open(id, t, e.target.value); };
+$('restart').onclick = () => open(order[0], 0, context, true);
+$('title').textContent = D.title;
+$('kicker').textContent = progress;
+$('loading').textContent = `Loading Lesson ${lesson(index)} · Scene ${index + 1} of 14…`;
+status($('loading').textContent); paintControls();
+const slowLoad = setTimeout(() => {
+  if (ready) return;
+  $('loading').textContent = 'Still loading the scene and people. Your place is kept.';
+  $('retry').hidden = false;
+}, 12000);
 const isWide = () => innerWidth > innerHeight * 1.1, wide = isWide();
 document.body.classList.toggle('wide', wide);
-addEventListener('resize', () => { if (isWide() !== wide) location.reload(); });
-const D = { ...DATA[id], ...DATA[id].contexts?.[context] };
+let resizeTimer;
+addEventListener('resize', () => {
+  dirty = true;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (isWide() !== wide) { save(); open(id,t,context); } }, 250);
+});
+const [{ createStage, createBuilding, createCounter }, { loadCast, flushPeople }, { createScreens, CSS }, { createFx, CSS: FXCSS }, mod, hall] = await Promise.all([
+  import('./kit.js'), import('./people.js'), import('./screens.js'), import('./fx.js'), import(`./s${id}.js`), import('./made.js')
+]);
 const S = i => D.timing[Math.min(i, D.timing.length - 1)][0], E = i => D.timing[Math.min(i, D.timing.length - 1)][1];
 $('title').textContent = D.title;
 const stage = createStage($('stage'));
 // People stay in the room while a page is open on a laptop: it stands beside them, not over them.
 if (wide) Object.defineProperty(stage, 'conceptPage', { get: () => false, set() {} });
 const b = createBuilding(stage.scene);
-await (await import('./made.js')).dressHall(stage.scene);
-const mod = await import(`./s${id}.js`);
-await loadCast(mod.cast || []);
+await Promise.all([hall.dressHall(stage.scene), loadCast(mod.cast || [])]);
 const css = document.createElement('style'); css.textContent = CSS + FXCSS; document.head.append(css);
 const ui = createScreens($('screen'));
 const fx = createFx($('fx'));
@@ -117,49 +228,125 @@ function draw(t) {
   if (wide) {
     // The picture slides left so the people stay centred in the room beside the page.
     const el = stage.renderer.domElement, W = el.clientWidth, H = el.clientHeight, col = H * .5625;
-    slide += ((document.body.classList.contains('vl-2d-active') ? 1 : 0) - slide) * .1;
+    const target = document.body.classList.contains('vl-2d-active') ? 1 : 0;
+    slide = playing ? slide + (target - slide) * .1 : target;
     if (slide > .002) stage.camera.setViewOffset(W, H, col / 2 * slide, 0, W, H); else stage.camera.clearViewOffset();
   }
   stage.render();
 }
-const audio = new Audio(`audio/${id}.mp3`); audio.preload = 'auto';
-let t = Math.min(start, D.T), playing = false, last = 0, dragging = false;
-const clock = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
-const jump = x => { t = Math.max(0, Math.min(D.T, x)); try { audio.currentTime = t; } catch {} };
-const toggle = () => {
-  playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play';
-  if (playing) { if (t >= D.T) { if (next) return open(next, 0, context); jump(0); } audio.currentTime = t; audio.play().catch(() => {}); } else audio.pause();
-};
-const open = (s, x, c) => { location.hash = `${s}-${Math.round(x)}-${c}`; location.reload(); };
-const order = Object.keys(DATA).filter(k => /^1\.\d\dv$/.test(k)), next = order[order.indexOf(id) + 1];
-$('seek').max = D.T;
-$('seek').oninput = e => { dragging = true; jump(+e.target.value); };
-$('seek').onchange = () => { dragging = false; };
-$('play').onclick = toggle;
-$('back').onclick = () => jump(t - 5);
-$('fwd').onclick = () => jump(t + 5);
-$('scene').innerHTML = Object.keys(DATA).filter(k => /^1\.\d\dv$/.test(k) && k !== '1.04s').map(k => `<option value="${k}"${k === id ? ' selected' : ''}>${k.slice(0, 4)} ${DATA[k].title}</option>`).join('');
-$('scene').onchange = e => open(e.target.value, 0, context);
-$('ctx').value = context;
-$('ctx').onchange = e => open(id, t, e.target.value);
+function jump(x) {
+  t = Math.max(0, Math.min(D.T, x)); tail = null; dirty = true;
+  try { audio.currentTime = Math.min(t, Number.isFinite(audio.duration) ? audio.duration : t); } catch {}
+  paintControls();
+}
+async function startPlayback() {
+  if (!ready || navigating) return;
+  if (t >= D.T) { if (next) return open(next,0,context,true); jump(0); }
+  const token = ++attempt;
+  playing = true; paintControls(); status(progress + ' · Starting audio…');
+  if (audio.error) audio.load();
+  // A scene can contain a short, authored silent tail after the MP3 ends.
+  if (Number.isFinite(audio.duration) && audio.duration > 0 && t >= audio.duration) {
+    tail = {at:performance.now(),t}; status(progress); return;
+  }
+  try {
+    audio.currentTime = t;
+    await audio.play();
+    if (token !== attempt) return;
+    status(progress);
+  } catch (error) {
+    if (token !== attempt) return;
+    playing = false; audio.pause(); paintControls(); save();
+    status(error.name === 'NotAllowedError' ? progress + ' · Tap Play to continue with audio' : 'Audio unavailable · Check your connection and press Play to retry');
+  }
+}
+$('seek').oninput = e => { dragging = true; audio.pause(); jump(+e.target.value); };
+function endSeek() {
+  if (!dragging) return;
+  dragging = false; save(); paintControls();
+  if (playing) startPlayback();
+}
+$('seek').onchange = endSeek;
+$('seek').addEventListener('blur', endSeek);
+$('seek').addEventListener('pointercancel', endSeek);
+$('play').onclick = () => playing ? pause() : startPlayback();
+$('back').onclick = () => { jump(t - 5); save(); if (playing) startPlayback(); };
+$('fwd').onclick = () => { jump(t + 5); save(); if (playing) startPlayback(); };
+audio.addEventListener('waiting', () => { if (playing) status(progress + ' · Buffering audio…'); });
+audio.addEventListener('playing', () => { if (playing) status(progress); });
+audio.addEventListener('seeked', () => { dirty = true; });
+audio.addEventListener('loadedmetadata', () => jump(t));
+audio.addEventListener('ended', () => {
+  if (!playing || dragging) return;
+  // Only a real media end can start the remaining scene time; failed audio never does.
+  t = Math.max(t, Math.min(audio.duration, D.T));
+  tail = {at:performance.now(),t};
+});
+audio.addEventListener('error', () => {
+  if (!playing) return;
+  pause(); status('Audio unavailable · Check your connection and press Play to retry');
+});
 // Full screen where the browser allows it (not on iPhone, which only allows it for videos).
 const root = document.documentElement, goFull = root.requestFullscreen || root.webkitRequestFullscreen;
 if (!goFull) $('full').style.display = 'none';
-$('full').onclick = () => document.fullscreenElement || document.webkitFullscreenElement ? (document.exitFullscreen || document.webkitExitFullscreen).call(document) : goFull.call(root);
-document.addEventListener('fullscreenchange', () => { $('full').textContent = document.fullscreenElement ? '✕' : '⛶'; });
+$('full').onclick = async () => {
+  try {
+    if (document.fullscreenElement || document.webkitFullscreenElement) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else await goFull.call(root);
+  } catch { status(progress + ' · Full screen is unavailable in this browser'); }
+};
+function fullState() {
+  const full = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  $('full').textContent = full ? '✕' : '⛶';
+  $('full').setAttribute('aria-label', full ? 'Exit full screen' : 'Full screen');
+  $('full').title = full ? 'Exit full screen' : 'Full screen';
+  dirty = true;
+}
+document.addEventListener('fullscreenchange', fullState);
+document.addEventListener('webkitfullscreenchange', fullState);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (!navigating) pause(); } else dirty = true;
+});
+addEventListener('pagehide', () => { if (!navigating) save(); audio.pause(); });
+// Space toggles playback; arrows seek when focus is outside native controls.
+addEventListener('keydown', e => {
+  if (!ready || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.code === 'Space') { e.preventDefault(); $('play').click(); }
+  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); $(e.code === 'ArrowLeft' ? 'back' : 'fwd').click(); }
+});
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (playing) { t = audio.paused || !audio.currentTime ? t + dt : audio.currentTime; if (t >= D.T) { t = D.T; toggle(); if (next) $('play').textContent = 'Next'; } }
-  draw(t);
-  if (!dragging) $('seek').value = t;
-  $('time').textContent = clock(t);
+  if (playing && !dragging) {
+    if (tail) t = Math.min(D.T, tail.t + (now - tail.at) / 1000);
+    else if (!audio.paused && !audio.seeking && audio.readyState >= 2) t = Math.min(D.T, audio.currentTime);
+    if (t >= D.T) {
+      playing = false; audio.pause(); save();
+      if (next) return open(next,0,context,true);
+      status('Chapter 1 complete · All 14 scenes finished'); dirty = true;
+    }
+  }
+  // Paused screens do not need an expensive WebGL render on every animation frame.
+  if ((dirty || playing && t !== lastDrawn) && (now - lastPaint >= (matchMedia('(pointer:coarse)').matches ? 1000/30 : 1000/60))) {
+    draw(t); lastDrawn = t; dirty = false; lastPaint = now; paintControls();
+  }
+  if (playing && !dragging && now - lastSave >= 1000) { lastSave = now; save(); }
   if (!window.__manual) requestAnimationFrame(frame);
 }
+// A useful first picture, including at scene zero, appears before the learner presses Play.
+// The authored fade and scene timings are left untouched.
+ready = true; clearTimeout(slowLoad);
+$('kicker').textContent = progress;
+jump(t);
 draw(t);
 $('wait').style.display = 'none';
+$('seek').disabled = $('play').disabled = $('back').disabled = $('fwd').disabled = false;
+$('full').disabled = false;
+status(progress + (window.__resumed ? ` · Resumed at ${clock(t)}` : ' · Ready'));
 requestAnimationFrame(frame);
 window.__stage = stage;
 window.__scene = { T: D.T, set(x) { window.__manual = true; t = x; draw(x); } };
+if (!next && t >= D.T) status('Chapter 1 complete · All 14 scenes finished');
+save();
+if (continuePlaying && !document.hidden) startPlayback();
 </script>
 
 </body></html>
