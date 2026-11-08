@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cybersecurity in the Age of AI</title></head><body>
+<title>Chapter 1 Live</title>
+<style>
+:root{--ink:#26305a;--cream:#f2eee6;--card:#fffdf8;--teal:#2f7477}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--cream);font-family:"Inter Tight","Segoe UI",Arial,sans-serif;color:var(--ink);overflow:hidden}
+#view{position:fixed;left:50%;top:0;bottom:92px;aspect-ratio:9/16;max-width:100%;transform:translateX(-50%);overflow:hidden;background:var(--cream);container-type:size}
+#stage{position:absolute;inset:0}
+canvas{display:block}
+#head{position:absolute;left:0;right:0;top:0;padding:16px 16px 26px;pointer-events:none;background:linear-gradient(rgba(242,238,230,.97) 62%,rgba(242,238,230,0))}
+#panel{position:absolute;left:0;right:0;bottom:0;height:152px;background:linear-gradient(rgba(242,238,230,0),rgba(242,238,230,.97) 22%);pointer-events:none}
+#kicker{font-size:16px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--teal)}
+#title{font-size:clamp(20px,5.4vw,28px);font-weight:750;line-height:1.15;margin-top:2px}
+#chips{display:none}
+#cap{position:absolute;left:16px;right:16px;bottom:20px;min-height:74px;display:flex;align-items:center;font-size:16px;line-height:1.34;color:var(--ink)}
+#fade{position:absolute;inset:0;background:var(--cream);opacity:0;pointer-events:none}
+#err,#wait{position:absolute;inset:0;display:none;place-items:center;padding:24px;text-align:center;background:var(--cream);z-index:9;font-size:18px}
+#wait{display:grid;font-weight:650}
+#bar{position:fixed;left:0;right:0;bottom:0;height:92px;background:var(--card);border-top:1px solid #d5d0c4;padding:6px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));display:grid;gap:6px;z-index:10}
+#seek{width:100%;margin:0;accent-color:var(--teal);height:24px}
+#ctl{display:flex;gap:6px;align-items:center;justify-content:center;min-width:0}
+#ctl button,#ctl select{font:600 15px "Segoe UI",Arial,sans-serif;border:1px solid #cfc6b4;background:var(--cream);color:var(--ink);border-radius:8px;min-height:38px;padding:0 10px}
+#ctl select{min-width:0;flex:0 1 120px}
+#play{background:var(--ink)!important;color:#fff!important;border-color:var(--ink)!important;min-width:68px}
+/* Laptop: the room fills the screen and the 2D page stands in a column on its right. */
+body.wide{--col:calc((100vh - 92px)*.5625)}
+body.wide #view{left:0;right:0;width:auto;max-width:none;aspect-ratio:auto;transform:none}
+body.wide #board{left:auto!important;right:0!important;width:var(--col);box-shadow:-10px 0 28px rgba(38,48,90,.16)}
+body.wide #panel{height:130px}
+body.wide #cap{left:28px;right:28px;bottom:14px;min-height:60px;font-size:21px}
+body.wide.vl-2d-active #cap{right:calc(var(--col) + 28px)}
+body.wide #head{padding:16px 28px 30px}
+body.wide.vl-2d-active #head,body.wide.vl-2d-active #cap,body.wide.vl-2d-active #panel{visibility:visible!important}
+body.wide.vl-2d-active #head,body.wide.vl-2d-active #panel{right:var(--col)}
+body.wide #bar{grid-template-columns:1fr auto;align-items:center;height:60px;padding-block:6px}
+body.wide #view{bottom:60px}
+body.wide{--col:calc((100vh - 60px)*.5625)}
+#time{font:600 14px "Segoe UI",Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/MotionPathPlugin.min.js"></script>
+<script type="importmap">
+{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}
+</script>
+<script>
+// A link opens one exact moment: #1.05v-50 or #1.05v-50-gulf.
+window.__errors=[];
+addEventListener('error',e=>{window.__errors.push(e.message);const n=document.getElementById('err');if(n){n.style.display='grid';n.textContent='Could not start: '+e.message;}});
+addEventListener('unhandledrejection',e=>{window.__errors.push(String(e.reason));const n=document.getElementById('err');if(n){n.style.display='grid';n.textContent='Could not start: '+e.reason;}});
+const m=/^#?(1\.\d\dv)(?:-(\d+(?:\.\d+)?))?(?:-(arab|gulf))?$/.exec(decodeURIComponent(location.hash));
+window.__live={id:m?.[1]||'1.01v',t:+(m?.[2]||0),context:m?.[3]||'arab'};
+// 3D models are published as gzip + base64 text; unpack them as they arrive.
+const nativeFetch=window.fetch.bind(window);
+window.fetch=async(input,init)=>{
+  const url=typeof input==='string'?input:input.url??String(input);
+  if(!/\.glb(\?|$)/.test(url))return nativeFetch(input,init);
+  const text=await(await nativeFetch(url.replace('.glb','.glb.txt'))).text();
+  const bytes=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
+  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')));
+};
+</script>
+<div id="view">
+<div id="stage"></div>
+<div id="fade"></div>
+<div id="head"><div id="kicker"></div><div id="title"></div></div>
+<div id="panel"></div>
+<div id="screen"></div>
+<div id="fx"></div>
+<div id="chips"></div>
+<div id="cap" aria-live="polite"></div>
+<div id="err">This scene needs WebGL, which this browser does not provide.</div>
+<div id="wait">Loading the scene…</div>
+</div>
+<div id="bar">
+<input id="seek" type="range" min="0" step=".05" value="0" aria-label="Position in the scene">
+<div id="ctl"><button id="back" aria-label="Back five seconds">−5</button><button id="play">Play</button><button id="fwd" aria-label="Forward five seconds">+5</button><span id="time">0:00</span><select id="scene" aria-label="Scene"></select><select id="ctx" aria-label="Cast"><option value="arab">Arab</option><option value="gulf">Gulf</option></select><button id="full" aria-label="Full screen" title="Full screen">⛶</button></div>
+</div>
+<script type="module">
+const { createStage, createBuilding, createCounter } = await import('./kit.js');
+const { loadCast, flushPeople, context } = await import('./people.js');
+const { createScreens, CSS } = await import('./screens.js');
+const { createFx, CSS: FXCSS } = await import('./fx.js');
+const DATA = (await import('./data.js')).default;
+const { id, t: start } = window.__live, $ = x => document.getElementById(x);
+const isWide = () => innerWidth > innerHeight * 1.1, wide = isWide();
+document.body.classList.toggle('wide', wide);
+addEventListener('resize', () => { if (isWide() !== wide) location.reload(); });
+const D = { ...DATA[id], ...DATA[id].contexts?.[context] };
+const S = i => D.timing[Math.min(i, D.timing.length - 1)][0], E = i => D.timing[Math.min(i, D.timing.length - 1)][1];
+$('title').textContent = D.title;
+const stage = createStage($('stage'));
+// People stay in the room while a page is open on a laptop: it stands beside them, not over them.
+if (wide) Object.defineProperty(stage, 'conceptPage', { get: () => false, set() {} });
+const b = createBuilding(stage.scene);
+await (await import('./made.js')).dressHall(stage.scene);
+const mod = await import(`./s${id}.js`);
+await loadCast(mod.cast || []);
+const css = document.createElement('style'); css.textContent = CSS + FXCSS; document.head.append(css);
+const ui = createScreens($('screen'));
+const fx = createFx($('fx'));
+const update = await mod.default({ stage, scene: stage.scene, b, createCounter, S, E, T: D.T, D, ui, fx });
+const editorial = ['1.04v', '1.01v'].includes(id) ? await (await import('./round2.js')).installEditorial(stage, D, id) : null;
+fx.finish(D.T);
+function hud(t) {
+  let i = -1;
+  D.timing.forEach((x, n) => { if (t >= x[0] - 0.05) i = n; });
+  const raw = D.phrases ? (D.phrases.find(p => t >= p[0] && t < p[1])?.[2] ?? '') : i >= 0 && t < D.timing[i][1] + 0.3 ? D.sentences[i] : '';
+  const cap = raw.replace(/Sadeed|Sadid/g, 'Sadeed');
+  if ($('cap').textContent !== cap) $('cap').textContent = cap;
+  $('fade').style.opacity = (t < 0.5 ? 1 - t / 0.5 : t > D.T - 0.5 ? (t - D.T + 0.5) / 0.5 : 0).toFixed(3);
+}
+let slide = 0;
+function draw(t) {
+  update(t); flushPeople(); editorial?.(t); hud(t); fx.seek(t);
+  if (wide) {
+    // The picture slides left so the people stay centred in the room beside the page.
+    const el = stage.renderer.domElement, W = el.clientWidth, H = el.clientHeight, col = H * .5625;
+    slide += ((document.body.classList.contains('vl-2d-active') ? 1 : 0) - slide) * .1;
+    if (slide > .002) stage.camera.setViewOffset(W, H, col / 2 * slide, 0, W, H); else stage.camera.clearViewOffset();
+  }
+  stage.render();
+}
+const audio = new Audio(`audio/${id}.mp3`); audio.preload = 'auto';
+let t = Math.min(start, D.T), playing = false, last = 0, dragging = false;
+const clock = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+const jump = x => { t = Math.max(0, Math.min(D.T, x)); try { audio.currentTime = t; } catch {} };
+const toggle = () => {
+  playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play';
+  if (playing) { if (t >= D.T) { if (next) return open(next, 0, context); jump(0); } audio.currentTime = t; audio.play().catch(() => {}); } else audio.pause();
+};
+const open = (s, x, c) => { location.hash = `${s}-${Math.round(x)}-${c}`; location.reload(); };
+const order = Object.keys(DATA).filter(k => /^1\.\d\dv$/.test(k)), next = order[order.indexOf(id) + 1];
+$('seek').max = D.T;
+$('seek').oninput = e => { dragging = true; jump(+e.target.value); };
+$('seek').onchange = () => { dragging = false; };
+$('play').onclick = toggle;
+$('back').onclick = () => jump(t - 5);
+$('fwd').onclick = () => jump(t + 5);
+$('scene').innerHTML = Object.keys(DATA).filter(k => /^1\.\d\dv$/.test(k) && k !== '1.04s').map(k => `<option value="${k}"${k === id ? ' selected' : ''}>${k.slice(0, 4)} ${DATA[k].title}</option>`).join('');
+$('scene').onchange = e => open(e.target.value, 0, context);
+$('ctx').value = context;
+$('ctx').onchange = e => open(id, t, e.target.value);
+// Full screen where the browser allows it (not on iPhone, which only allows it for videos).
+const root = document.documentElement, goFull = root.requestFullscreen || root.webkitRequestFullscreen;
+if (!goFull) $('full').style.display = 'none';
+$('full').onclick = () => document.fullscreenElement || document.webkitFullscreenElement ? (document.exitFullscreen || document.webkitExitFullscreen).call(document) : goFull.call(root);
+document.addEventListener('fullscreenchange', () => { $('full').textContent = document.fullscreenElement ? '✕' : '⛶'; });
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (playing) { t = audio.paused || !audio.currentTime ? t + dt : audio.currentTime; if (t >= D.T) { t = D.T; toggle(); if (next) $('play').textContent = 'Next'; } }
+  draw(t);
+  if (!dragging) $('seek').value = t;
+  $('time').textContent = clock(t);
+  if (!window.__manual) requestAnimationFrame(frame);
+}
+draw(t);
+$('wait').style.display = 'none';
+requestAnimationFrame(frame);
+window.__stage = stage;
+window.__scene = { T: D.T, set(x) { window.__manual = true; t = x; draw(x); } };
+</script>
+
+</body></html>
