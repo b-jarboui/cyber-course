@@ -130,12 +130,16 @@ const DATA = (await import('./data.js')).default;
 const { id, t: start } = window.__live, $ = x => document.getElementById(x);
 const context = window.__live.context, order = window.__order, index = order.indexOf(id), next = order[index + 1];
 const lesson = n => n < 4 ? '1.1' : n < 10 ? '1.2' : '1.3';
+// Each lesson has its name, and its scenes are numbered 1, 2, 3... in the order they are watched.
+const LESSON_NAME = { '1.1': 'Foundations of Cybersecurity', '1.2': 'The Threat Landscape', '1.3': 'How AI Changes the Picture' };
+const FIRST = { '1.1': 0, '1.2': 4, '1.3': 10 }, part = n => n - FIRST[lesson(n)] + 1;
 const D = { ...DATA[id], ...DATA[id].contexts?.[context] };
 const audio = window.__audio;
 let t = Math.max(0, Math.min(start, D.T)), playing = false, ready = false, dirty = true, dragging = false;
 let attempt = 0, tail = null, lastPaint = 0, lastDrawn = NaN, lastSave = 0, navigating = false;
 const clock = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
-const progress = `Chapter 1 · Lesson ${lesson(index)} · Scene ${index + 1} of ${order.length}`;
+const parts = l => order.filter((k, n) => lesson(n) === l).length;
+const progress = `Lesson ${lesson(index)} · ${LESSON_NAME[lesson(index)]} · Part ${part(index)} of ${parts(lesson(index))}`;
 const status = text => { $('status').textContent = text; };
 const mark = () => `${id}-${Math.round(t * 100) / 100}-${context}`;
 function save() {
@@ -164,7 +168,7 @@ function open(s, x, c, play = playing) {
   navigating = true; save(); audio.pause(); attempt++;
   const target = `${s}-${Math.round(x * 100) / 100}-${c}`;
   try { sessionStorage.setItem('chapter1-navigation', JSON.stringify({target,play,at:Date.now()})); } catch {}
-  status(`Loading Lesson ${lesson(order.indexOf(s))} · Scene ${order.indexOf(s) + 1} of 14…`);
+  status(`Loading Lesson ${lesson(order.indexOf(s))} · Part ${part(order.indexOf(s))}…`);
   $('loading').textContent = $('status').textContent;
   $('wait').style.display = 'grid';
   // One navigation entry; hashchange handles pasted links and browser Back too.
@@ -175,7 +179,7 @@ let nav = null;
 try { nav = JSON.parse(sessionStorage.getItem('chapter1-navigation')); sessionStorage.removeItem('chapter1-navigation'); } catch {}
 const continuePlaying = nav?.target === location.hash.slice(1) && Date.now() - nav.at < 120000 && nav.play;
 $('seek').max = D.T;
-$('scene').innerHTML = ['1.1','1.2','1.3'].map(l => `<optgroup label="Lesson ${l}">${order.filter((k,n) => lesson(n) === l).map(k => `<option value="${k}">${k.slice(0,4)} ${DATA[k].title}</option>`).join('')}</optgroup>`).join('');
+$('scene').innerHTML = ['1.1','1.2','1.3'].map(l => `<optgroup label="Lesson ${l} · ${LESSON_NAME[l]}">${order.map((k,n) => [k,n]).filter(([,n]) => lesson(n) === l).map(([k,n]) => `<option value="${k}">${l}.${part(n)}  ${DATA[k].title}</option>`).join('')}</optgroup>`).join('');
 $('scene').value = id; $('ctx').value = context;
 $('scene').disabled = $('ctx').disabled = false;
 $('scene').onchange = e => open(e.target.value, 0, context);
@@ -183,7 +187,7 @@ $('ctx').onchange = e => { save(); open(id, t, e.target.value); };
 $('restart').onclick = () => open(order[0], 0, context, true);
 $('title').textContent = D.title;
 $('kicker').textContent = progress;
-$('loading').textContent = `Loading Lesson ${lesson(index)} · Scene ${index + 1} of 14…`;
+$('loading').textContent = `Loading Lesson ${lesson(index)} · Part ${part(index)}…`;
 status($('loading').textContent); paintControls();
 const slowLoad = setTimeout(() => {
   if (ready) return;
