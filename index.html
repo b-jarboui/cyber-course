@@ -1,14 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cybersecurity in the Age of AI</title><script>
-/* Anonymous usage statistics (Microsoft Clarity, cookies off, strict masking). Skipped for QA (?qa=1) and local development. */
-(function(c,l,a,r,i,t,y){
-  if(/[?&]qa=1/.test(location.search)||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)||location.protocol==="file:")return;
-  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-})(window,document,"clarity","script","zd6oshc1l9");
-</script>
-</head><body>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cybersecurity in the Age of AI</title></head><body>
 <meta charset="utf-8">
 <title>Chapter 1 Live</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -84,10 +75,10 @@ body.wide #options #scene{width:220px;flex:0 1 220px}
 <script>
 // A link opens one exact moment: #1.05v-50 or #1.05v-50-gulf.
 window.__errors=[];
-window.__order=['1.01v','1.04v','1.05v','1.06v','1.07v','1.08v','1.09v','1.10v','1.11v','1.12v','1.13v','1.14v','1.15v','1.16v'];
+window.__order=['1.01v','1.04v','1.05v','1.06v','1.07v','1.08v','1.09v','1.10v','1.11v','1.12v','1.13v','1.14v','1.15v','1.16v','2.01v','2.02v','2.03v','2.04v','2.05v','2.06v','2.07v','2.08v','2.09v','2.10v','2.11v','2.12v','2.13v','2.14v','3.01v','3.02v','3.03v','3.04v','3.05v','3.06v','3.07v','3.08v','3.09v','3.10v','3.11v','3.12v','3.13v','3.14v','4.01v','4.02v','4.03v','4.04v','4.05v','4.06v','4.07v','4.08v','4.09v','4.10v','4.11v','4.12v','4.13v','4.14v','5.01v','5.02v','5.03v','5.04v','5.05v','5.06v','5.07v','5.08v','5.09v','5.10v','5.11v','5.12v','5.13v','5.14v','6.01v','6.02v','6.03v','6.04v','6.05v','6.06v','6.07v','6.08v','6.09v','6.10v','6.11v','6.12v','6.13v','6.14v','7.01v','7.02v','7.03v','7.04v','7.05v','7.06v','7.07v','7.08v','7.09v','7.10v','7.11v','7.12v','7.13v','7.14v'];
 const readStore=(store,key)=>{try{return JSON.parse(store.getItem(key));}catch{return null;}};
 let hash='';try{hash=decodeURIComponent(location.hash);}catch{}
-const m=/^#?(1\.\d\dv)(?:-(\d+(?:\.\d+)?))?(?:-(arab|gulf))?$/.exec(hash);
+const m=/^#?(\d+\.\d\dv)(?:-(\d+(?:\.\d+)?))?(?:-(arab|gulf))?$/.exec(hash);
 const saved=(()=>{try{return readStore(localStorage,'chapter1-place');}catch{return null;}})();
 const valid=s=>s&&window.__order.includes(s.id)&&Number.isFinite(s.t)&&s.t>=0&&['arab','gulf'].includes(s.context);
 window.__live=m&&window.__order.includes(m[1])?{id:m[1],t:Number(m[2]||0),context:m[3]||'arab'}:
@@ -97,12 +88,12 @@ window.__fail=message=>{
   window.__errors.push(String(message));
   window.__stop?.();
   const n=document.getElementById('err');
-  if(n){document.getElementById('wait').style.display='none';n.style.display='grid';n.querySelector('span').textContent=/webgl/i.test(String(message))?'This browser could not start the 3D scene. Your place is kept. Try a browser with WebGL enabled.':'The scene could not load. Your place is kept. Check your connection, then retry.';}
+  if(n){document.getElementById('wait').style.display='none';n.style.display='grid';n.querySelector('span').textContent=(window.__tr||(s=>s))(/webgl/i.test(String(message))?'This browser could not start the 3D scene. Your place is kept. Try a browser with WebGL enabled.':'The scene could not load. Your place is kept. Check your connection, then retry.');}
 };
 addEventListener('error',e=>window.__fail(e.message));
 addEventListener('unhandledrejection',e=>window.__fail(e.reason));
 // Start fetching narration while the scene and people load; playback still needs Play.
-window.__audio=new Audio(`audio/${window.__live.id}.mp3`);
+window.__audio=new Audio(`audio/${new URLSearchParams(location.search).get('lang')==='ar'?'ar/':''}${window.__live.id}.mp3`);
 window.__audio.preload='auto';
 // 3D models are published as gzip + base64 text; unpack them as they arrive.
 const nativeFetch=window.fetch.bind(window);
@@ -127,7 +118,7 @@ window.fetch=async(input,init)=>{
 <div id="cap" aria-live="polite"></div>
 <div id="err" role="alert"><span></span><button onclick="location.reload()">Retry scene</button></div>
 <div id="wait" role="status"><span id="loading">Loading the scene…</span><button id="retry" hidden onclick="location.reload()">Retry scene</button></div>
-<div id="done" role="status"><strong>Chapter 1 complete</strong><span>You have reached the end of all 14 scenes.</span><button id="restart">Replay chapter</button></div>
+<div id="done" role="status"><strong>Course complete</strong><span>You have reached the end of all 98 scenes.</span><button id="restart">Replay chapter</button></div>
 </div>
 <div id="bar">
 <div id="status" role="status" aria-live="polite">Loading Chapter 1…</div>
@@ -135,21 +126,45 @@ window.fetch=async(input,init)=>{
 <div id="ctl"><div id="transport"><button id="back" aria-label="Back five seconds" disabled>−5</button><button id="play" disabled>Play</button><button id="fwd" aria-label="Forward five seconds" disabled>+5</button><span id="time">0:00</span></div><div id="options"><select id="scene" aria-label="Scene" disabled></select><select id="ctx" aria-label="Cast" disabled><option value="arab">Arab</option><option value="gulf">Gulf</option></select><button id="full" aria-label="Full screen" title="Full screen" disabled>⛶</button></div></div>
 </div>
 <script type="module">
-const DATA = (await import('./data.js')).default;
+import { AR, tr, trTemplate } from './i18n.js';
+window.__tr = tr;
+if (AR) {
+  document.documentElement.lang = 'ar';
+  document.title = tr(document.title);
+  const font = document.createElement('link');font.rel = 'stylesheet';font.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap';document.head.append(font);
+  const style = document.createElement('link');
+  style.rel = 'stylesheet'; style.href = './player-ar.css';
+  document.head.append(style);
+  const cap = document.getElementById('cap');
+  new ResizeObserver(() => {
+    const clearance = cap.offsetHeight + parseFloat(getComputedStyle(cap).bottom) + 12;
+    document.getElementById('view').style.setProperty('--ar-caption-clearance', clearance + 'px');
+  }).observe(cap);
+  for (const id of ['cap','head','bar','err','wait','done']) document.getElementById(id).dir = 'rtl';
+  for (const el of document.querySelectorAll('#bar *,#err *,#wait *,#done *')) {
+    if (!el.children.length && el.textContent) el.textContent = tr(el.textContent);
+    for (const attr of ['aria-label','title']) if (el.hasAttribute(attr)) el.setAttribute(attr,tr(el.getAttribute(attr)));
+  }
+  // The scene can start with the Arabic system font while the web font downloads.
+}
+const DATA = (await import(AR ? './data-ar.js' : './data.js')).default;
 const { id, t: start } = window.__live, $ = x => document.getElementById(x);
 const context = window.__live.context, order = window.__order, index = order.indexOf(id), next = order[index + 1];
-const lesson = n => n < 4 ? '1.1' : n < 10 ? '1.2' : '1.3';
+const LESSON_OF = {"1.01v": "1.1", "1.04v": "1.1", "1.05v": "1.1", "1.06v": "1.1", "1.07v": "1.2", "1.08v": "1.2", "1.09v": "1.2", "1.10v": "1.2", "1.11v": "1.2", "1.12v": "1.2", "1.13v": "1.3", "1.14v": "1.3", "1.15v": "1.3", "1.16v": "1.3", "2.01v": "2.1", "2.02v": "2.1", "2.03v": "2.1", "2.04v": "2.1", "2.05v": "2.1", "2.06v": "2.2", "2.07v": "2.2", "2.08v": "2.2", "2.09v": "2.2", "2.10v": "2.2", "2.11v": "2.3", "2.12v": "2.3", "2.13v": "2.3", "2.14v": "2.3", "3.01v": "3.1", "3.02v": "3.1", "3.03v": "3.1", "3.04v": "3.1", "3.05v": "3.2", "3.06v": "3.2", "3.07v": "3.2", "3.08v": "3.2", "3.09v": "3.2", "3.10v": "3.3", "3.11v": "3.3", "3.12v": "3.3", "3.13v": "3.3", "3.14v": "3.3", "4.01v": "4.1", "4.02v": "4.1", "4.03v": "4.1", "4.04v": "4.1", "4.05v": "4.2", "4.06v": "4.2", "4.07v": "4.2", "4.08v": "4.2", "4.09v": "4.2", "4.10v": "4.3", "4.11v": "4.3", "4.12v": "4.3", "4.13v": "4.3", "4.14v": "4.3", "5.01v": "5.1", "5.02v": "5.1", "5.03v": "5.1", "5.04v": "5.1", "5.05v": "5.2", "5.06v": "5.2", "5.07v": "5.2", "5.08v": "5.2", "5.09v": "5.2", "5.10v": "5.3", "5.11v": "5.3", "5.12v": "5.3", "5.13v": "5.3", "5.14v": "5.3", "6.01v": "6.1", "6.02v": "6.1", "6.03v": "6.1", "6.04v": "6.2", "6.05v": "6.2", "6.06v": "6.2", "6.07v": "6.3", "6.08v": "6.3", "6.09v": "6.3", "6.10v": "6.3", "6.11v": "6.4", "6.12v": "6.4", "6.13v": "6.4", "6.14v": "6.4", "7.01v": "7.1", "7.02v": "7.1", "7.03v": "7.1", "7.04v": "7.1", "7.05v": "7.2", "7.06v": "7.2", "7.07v": "7.2", "7.08v": "7.2", "7.09v": "7.2", "7.10v": "7.3", "7.11v": "7.3", "7.12v": "7.3", "7.13v": "7.3", "7.14v": "7.3"}, lesson = n => LESSON_OF[order[n]];
 // Each lesson has its name, and its scenes are numbered 1, 2, 3... in the order they are watched.
-const LESSON_NAME = { '1.1': 'Foundations of Cybersecurity', '1.2': 'The Threat Landscape', '1.3': 'How AI Changes the Picture' };
-const FIRST = { '1.1': 0, '1.2': 4, '1.3': 10 }, part = n => n - FIRST[lesson(n)] + 1;
-const D = { ...DATA[id], ...DATA[id].contexts?.[context] };
+const LESSON_NAME = {"1.1": "Foundations of Cybersecurity", "1.2": "The Threat Landscape", "1.3": "How AI Changes the Picture", "2.1": "Modern Phishing Techniques", "2.2": "Advanced Social Engineering", "2.3": "Institutional Fraud and Impersonation", "3.1": "AI-Generated Voice and Audio Manipulation", "3.2": "Deepfake Images and Video", "3.3": "Misinformation and Information Manipulation", "4.1": "Authentication and Account Protection", "4.2": "Advanced Identity Attacks", "4.3": "Access Management and Zero Trust", "5.1": "Information Security and Data Protection", "5.2": "Shadow AI and Generative AI Risks", "5.3": "Responsible AI in Institutional Operations", "6.1": "Security Architecture of AI Applications", "6.2": "Prompt Injection and AI Manipulation", "6.3": "AI Data and Model Security", "6.4": "Autonomous Agents and Agentic AI Security", "7.1": "Endpoint and Device Security", "7.2": "Cloud and Collaboration Security", "7.3": "Supply-Chain and Insider Threats"};
+const FIRST = {"1.1": 0, "1.2": 4, "1.3": 10, "2.1": 14, "2.2": 19, "2.3": 24, "3.1": 28, "3.2": 32, "3.3": 37, "4.1": 42, "4.2": 46, "4.3": 51, "5.1": 56, "5.2": 60, "5.3": 65, "6.1": 70, "6.2": 73, "6.3": 76, "6.4": 80, "7.1": 84, "7.2": 88, "7.3": 93}, part = n => n - FIRST[lesson(n)] + 1;
+const D = AR ? { title: DATA[id].title, sentences: DATA[id].sentences, timing: DATA[id].timing, T: DATA[id].T } : { ...DATA[id], ...DATA[id].contexts?.[context] };
 const audio = window.__audio;
 let t = Math.max(0, Math.min(start, D.T)), playing = false, ready = false, dirty = true, dragging = false;
 let attempt = 0, tail = null, lastPaint = 0, lastDrawn = NaN, lastSave = 0, navigating = false;
 const clock = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
 const parts = l => order.filter((k, n) => lesson(n) === l).length;
-const progress = `Lesson ${lesson(index)} · ${LESSON_NAME[lesson(index)]} · Part ${part(index)} of ${parts(lesson(index))}`;
-const status = text => { $('status').textContent = text; };
+const progressKey = 'Lesson {lesson} · {lessonName} · Part {part} of {totalParts}';
+const progressValues = {lesson:lesson(index), lessonName:tr(LESSON_NAME[lesson(index)]), part:part(index), totalParts:parts(lesson(index))};
+const progress = trTemplate(progressKey, progressValues);
+const progressStatus = (suffix, values = {}) => trTemplate(progressKey + suffix, {...progressValues,...values});
+const status = text => { $('status').textContent = tr(text); };
 const mark = () => `${id}-${Math.round(t * 100) / 100}-${context}`;
 function save() {
   if (playing && !dragging && !audio.paused && !audio.seeking && audio.readyState >= 2) t = Math.min(D.T, audio.currentTime);
@@ -160,15 +175,15 @@ function save() {
 function paintControls() {
   $('time').textContent = `${clock(t)} / ${clock(D.T)}`;
   if (!dragging) $('seek').value = t;
-  $('seek').setAttribute('aria-valuetext', `${clock(t)} of ${clock(D.T)}`);
-  $('play').textContent = playing ? 'Pause' : t >= D.T ? (next ? 'Next' : 'Replay') : 'Play';
-  $('play').setAttribute('aria-label', playing ? 'Pause' : t >= D.T && next ? 'Play next scene' : 'Play');
+  $('seek').setAttribute('aria-valuetext', trTemplate('{currentTime} of {totalTime}', {currentTime:clock(t),totalTime:clock(D.T)}));
+  $('play').textContent = tr(playing ? 'Pause' : t >= D.T ? (next ? 'Next' : 'Replay') : 'Play');
+  $('play').setAttribute('aria-label', tr(playing ? 'Pause' : t >= D.T && next ? 'Play next scene' : 'Play'));
   $('done').style.display = !next && t >= D.T ? 'grid' : 'none';
 }
 function pause() {
   save();
   playing = false; attempt++; audio.pause(); tail = null; dirty = true;
-  if (ready) status(progress + ' · Paused');
+  if (ready) status(progressStatus(' · Paused'));
   save(); paintControls();
 }
 window.__stop = pause;
@@ -177,7 +192,7 @@ function open(s, x, c, play = playing) {
   navigating = true; save(); audio.pause(); attempt++;
   const target = `${s}-${Math.round(x * 100) / 100}-${c}`;
   try { sessionStorage.setItem('chapter1-navigation', JSON.stringify({target,play,at:Date.now()})); } catch {}
-  status(`Loading Lesson ${lesson(order.indexOf(s))} · Part ${part(order.indexOf(s))}…`);
+  status(trTemplate('Loading Lesson {lesson} · Part {part}…', {lesson:lesson(order.indexOf(s)),part:part(order.indexOf(s))}));
   $('loading').textContent = $('status').textContent;
   $('wait').style.display = 'grid';
   // One navigation entry; hashchange handles pasted links and browser Back too.
@@ -188,7 +203,7 @@ let nav = null;
 try { nav = JSON.parse(sessionStorage.getItem('chapter1-navigation')); sessionStorage.removeItem('chapter1-navigation'); } catch {}
 const continuePlaying = nav?.target === location.hash.slice(1) && Date.now() - nav.at < 120000 && nav.play;
 $('seek').max = D.T;
-$('scene').innerHTML = ['1.1','1.2','1.3'].map(l => `<optgroup label="Lesson ${l} · ${LESSON_NAME[l]}">${order.map((k,n) => [k,n]).filter(([,n]) => lesson(n) === l).map(([k,n]) => `<option value="${k}">${l}.${part(n)}  ${DATA[k].title}</option>`).join('')}</optgroup>`).join('');
+$('scene').innerHTML = ['1.1', '1.2', '1.3', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '4.3', '5.1', '5.2', '5.3', '6.1', '6.2', '6.3', '6.4', '7.1', '7.2', '7.3'].map(l => `<optgroup label="${trTemplate('Lesson {lesson} · {lessonName}', {lesson:l,lessonName:tr(LESSON_NAME[l])})}">${order.map((k,n) => [k,n]).filter(([,n]) => lesson(n) === l).map(([k,n]) => `<option value="${k}"${DATA[k] ? '' : ' disabled'}>${l}.${part(n)}  ${DATA[k]?.title ?? '…'}</option>`).join('')}</optgroup>`).join('');
 $('scene').value = id; $('ctx').value = context;
 $('scene').disabled = $('ctx').disabled = false;
 $('scene').onchange = e => open(e.target.value, 0, context);
@@ -196,11 +211,11 @@ $('ctx').onchange = e => { save(); open(id, t, e.target.value); };
 $('restart').onclick = () => open(order[0], 0, context, true);
 $('title').textContent = D.title;
 $('kicker').textContent = progress;
-$('loading').textContent = `Loading Lesson ${lesson(index)} · Part ${part(index)}…`;
+$('loading').textContent = trTemplate('Loading Lesson {lesson} · Part {part}…', {lesson:lesson(index),part:part(index)});
 status($('loading').textContent); paintControls();
 const slowLoad = setTimeout(() => {
   if (ready) return;
-  $('loading').textContent = 'Still loading the scene and people. Your place is kept.';
+  $('loading').textContent = tr('Still loading the scene and people. Your place is kept.');
   $('retry').hidden = false;
 }, 12000);
 const isWide = () => innerWidth > innerHeight * 1.1, wide = isWide();
@@ -243,7 +258,7 @@ function draw(t) {
     const el = stage.renderer.domElement, W = el.clientWidth, H = el.clientHeight, col = H * .5625;
     const target = document.body.classList.contains('vl-2d-active') ? 1 : 0;
     slide = playing ? slide + (target - slide) * .1 : target;
-    if (slide > .002) stage.camera.setViewOffset(W, H, col / 2 * slide, 0, W, H); else stage.camera.clearViewOffset();
+    if (slide > .002) stage.camera.setViewOffset(W, H, (AR ? -col : col) / 2 * slide, 0, W, H); else stage.camera.clearViewOffset();
   }
   stage.render();
 }
@@ -256,7 +271,7 @@ async function startPlayback() {
   if (!ready || navigating) return;
   if (t >= D.T) { if (next) return open(next,0,context,true); jump(0); }
   const token = ++attempt;
-  playing = true; paintControls(); status(progress + ' · Starting audio…');
+  playing = true; paintControls(); status(progressStatus(' · Starting audio…'));
   if (audio.error) audio.load();
   // A scene can contain a short, authored silent tail after the MP3 ends.
   if (Number.isFinite(audio.duration) && audio.duration > 0 && t >= audio.duration) {
@@ -270,7 +285,7 @@ async function startPlayback() {
   } catch (error) {
     if (token !== attempt) return;
     playing = false; audio.pause(); paintControls(); save();
-    status(error.name === 'NotAllowedError' ? progress + ' · Tap Play to continue with audio' : 'Audio unavailable · Check your connection and press Play to retry');
+    status(error.name === 'NotAllowedError' ? progressStatus(' · Tap Play to continue with audio') : 'Audio unavailable · Check your connection and press Play to retry');
   }
 }
 $('seek').oninput = e => { dragging = true; audio.pause(); jump(+e.target.value); };
@@ -285,7 +300,7 @@ $('seek').addEventListener('pointercancel', endSeek);
 $('play').onclick = () => playing ? pause() : startPlayback();
 $('back').onclick = () => { jump(t - 5); save(); if (playing) startPlayback(); };
 $('fwd').onclick = () => { jump(t + 5); save(); if (playing) startPlayback(); };
-audio.addEventListener('waiting', () => { if (playing) status(progress + ' · Buffering audio…'); });
+audio.addEventListener('waiting', () => { if (playing) status(progressStatus(' · Buffering audio…')); });
 audio.addEventListener('playing', () => { if (playing) status(progress); });
 audio.addEventListener('seeked', () => { dirty = true; });
 audio.addEventListener('loadedmetadata', () => jump(t));
@@ -306,13 +321,13 @@ $('full').onclick = async () => {
   try {
     if (document.fullscreenElement || document.webkitFullscreenElement) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     else await goFull.call(root);
-  } catch { status(progress + ' · Full screen is unavailable in this browser'); }
+  } catch { status(progressStatus(' · Full screen is unavailable in this browser')); }
 };
 function fullState() {
   const full = !!(document.fullscreenElement || document.webkitFullscreenElement);
   $('full').textContent = full ? '✕' : '⛶';
-  $('full').setAttribute('aria-label', full ? 'Exit full screen' : 'Full screen');
-  $('full').title = full ? 'Exit full screen' : 'Full screen';
+  $('full').setAttribute('aria-label', tr(full ? 'Exit full screen' : 'Full screen'));
+  $('full').title = tr(full ? 'Exit full screen' : 'Full screen');
   dirty = true;
 }
 document.addEventListener('fullscreenchange', fullState);
@@ -325,7 +340,7 @@ addEventListener('pagehide', () => { if (!navigating) save(); audio.pause(); });
 addEventListener('keydown', e => {
   if (!ready || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(e.target.tagName)) return;
   if (e.code === 'Space') { e.preventDefault(); $('play').click(); }
-  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); $(e.code === 'ArrowLeft' ? 'back' : 'fwd').click(); }
+  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); $((e.code === 'ArrowLeft') !== AR ? 'back' : 'fwd').click(); }
 });
 function frame(now) {
   if (playing && !dragging) {
@@ -334,7 +349,7 @@ function frame(now) {
     if (t >= D.T) {
       playing = false; audio.pause(); save();
       if (next) return open(next,0,context,true);
-      status('Chapter 1 complete · All 14 scenes finished'); dirty = true;
+      status('Course complete · All 98 scenes finished'); dirty = true;
     }
   }
   // Paused screens do not need an expensive WebGL render on every animation frame.
@@ -347,17 +362,29 @@ function frame(now) {
 // A useful first picture, including at scene zero, appears before the learner presses Play.
 // The authored fade and scene timings are left untouched.
 ready = true; clearTimeout(slowLoad);
+// While this scene plays, quietly download the next scene's files (one at a time, low priority) so it opens from cache.
+if (next) setTimeout(async () => {
+  try {
+    const list = (await import('./preload.js')).default[`${next}|${context}`] || [];
+    const have = new Set(performance.getEntriesByType('resource').map(e => new URL(e.name).pathname));
+    for (let f of list) {
+      if (AR) f = f.replace(/^audio\/([^/]+\.mp3)$/, 'audio/ar/$1');
+      const url = new URL(f, location.href);
+      if (!have.has(url.pathname)) await fetch(url, { priority: 'low' }).then(r => r.blob()).catch(() => {});
+    }
+  } catch {}
+}, 1500);
 $('kicker').textContent = progress;
 jump(t);
 draw(t);
 $('wait').style.display = 'none';
 $('seek').disabled = $('play').disabled = $('back').disabled = $('fwd').disabled = false;
 $('full').disabled = false;
-status(progress + (window.__resumed ? ` · Resumed at ${clock(t)}` : ' · Ready'));
+status(window.__resumed ? progressStatus(' · Resumed at {time}', {time:clock(t)}) : progressStatus(' · Ready'));
 requestAnimationFrame(frame);
 window.__stage = stage;
 window.__scene = { T: D.T, set(x) { window.__manual = true; t = x; draw(x); } };
-if (!next && t >= D.T) status('Chapter 1 complete · All 14 scenes finished');
+if (!next && t >= D.T) status('Course complete · All 98 scenes finished');
 save();
 if (continuePlaying && !document.hidden) startPlayback();
 </script>
