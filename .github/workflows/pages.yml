@@ -17,11 +17,11 @@ jobs:
       name: github-pages
       url: ${{ steps.d.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: mkdir site && cat site.zip.* > s.zip && unzip -q s.zip -d site && for p in patch*.zip; do [ -f "$p" ] && unzip -oq "$p" -d site; done; if [ -f index.html ]; then cp -f index.html site/; fi
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: d
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
